@@ -1,12 +1,11 @@
-/*****************************************
  * CONFIG — إعدادات سريعة
  *****************************************/
 const CONFIG = {
   logo: {
     url: "https://i.ibb.co/8LMqHNdF/image.png", // رابط صورة الشعار
     text: "",                         // نص بجانب الشعار (اختياري)
-    position: "bottom-left",                 // bottom-left | bottom-right | top-left | top-right
-    sizePx: 28,                               // ارتفاع الشعار بالبكسل
+    position: "bottom-left",          // bottom-left | bottom-right | top-left | top-right
+    sizePx: 100,                      // ارتفاع الشعار بالبكسل (سيتم تعديلها ديناميكياً)
     opacity: 0.92
   },
   channels: [
@@ -42,7 +41,6 @@ const CONFIG = {
       servers: [
         { label: "سيرفر 1", url: "https://ac.yalla1shoot.club/albaplayer/sports-3/" },
         { label: "سيرفر 2", url: "https://ac.yalla1shoot.club/albaplayer/sports-3/?serv=2" },
-        { label: "سيرفر 3", url: "https://ac.yalla1shoot.club/albaplayer/sports-3/?serv=3" },
       ]
     },
     {
@@ -54,7 +52,6 @@ const CONFIG = {
       servers: [
         { label: "سيرفر 1", url: "https://ac.yalla1shoot.club/albaplayer/sports-4/" },
         { label: "سيرفر 2", url: "https://ac.yalla1shoot.club/albaplayer/sports-4/?serv=2" },
-
       ]
     },
     {
@@ -66,7 +63,6 @@ const CONFIG = {
       servers: [
         { label: "سيرفر 1", url: "https://ac.yalla1shoot.club/albaplayer/sports-5/" },
         { label: "سيرفر 2", url: "https://ac.yalla1shoot.club/albaplayer/sports-5/?serv=2" },
-
       ]
     },
     {
@@ -80,7 +76,7 @@ const CONFIG = {
         { label: "سيرفر 2", url: "https://ac.yalla1shoot.club/albaplayer/sports-b5/?serv=2" }
       ]
     },
-     {
+    {
       id: "match",
       name: "SSC2 TV",
       info: "SSC2",
@@ -102,7 +98,7 @@ const CONFIG = {
         { label: "سيرفر 2", url: "https://ac.yalla1shoot.club/albaplayer/sports-b3/?serv=2" }
       ]
     },
-     {
+    {
       id: "match",
       name: "SSC4 TV",
       info: "SSC4",
@@ -123,7 +119,7 @@ const CONFIG = {
         { label: "اليوتيوب", url: "https://www.youtube.com/embed/bNyUyrR0PHo?si=eaAqp9pYsmx_by-s" },
       ]
     },
-     {
+    {
       id: "yt-news",
       name: "الجزيرة وثائقي",
       info: "JZ1TV",
@@ -171,10 +167,23 @@ function showToast(msg){
   el.toast.textContent = msg; el.toast.classList.add('show');
   setTimeout(()=> el.toast.classList.remove('show'), 2200);
 }
+
+/*****************************************
+ * إعداد الشعار مع تغيير الحجم حسب الشاشة
+ *****************************************/
 function setLogoFromConfig(){
-  const {url,text,position,sizePx,opacity} = CONFIG.logo;
-  el.logoImg.src = url; el.logoImg.style.height = sizePx + 'px'; el.logoImg.style.opacity = opacity;
-  el.logoText.textContent = text||''; el.logoText.style.display = text? 'inline' : 'none';
+  const {url,text,position,opacity} = CONFIG.logo;
+  // الحجم ديناميكي حسب عرض الشاشة
+  const sizePx = window.innerWidth <= 480 ? 50 : 100;
+  CONFIG.logo.sizePx = sizePx;
+
+  el.logoImg.src = url; 
+  el.logoImg.style.height = sizePx + 'px'; 
+  el.logoImg.style.opacity = opacity;
+
+  el.logoText.textContent = text||''; 
+  el.logoText.style.display = text ? 'inline' : 'none';
+
   // تموضع
   const map = {
     'bottom-left': {top:'', right:'', bottom:'14px', left:'14px'},
@@ -183,9 +192,14 @@ function setLogoFromConfig(){
     'top-right':   {top:'14px', right:'14px', bottom:'', left:''},
   };
   const p = map[position] || map['bottom-left'];
-  el.logoOverlay.style.top = p.top; el.logoOverlay.style.right = p.right;
-  el.logoOverlay.style.bottom = p.bottom; el.logoOverlay.style.left = p.left;
+  el.logoOverlay.style.top = p.top; 
+  el.logoOverlay.style.right = p.right;
+  el.logoOverlay.style.bottom = p.bottom; 
+  el.logoOverlay.style.left = p.left;
 }
+
+// تحديث تلقائي عند تغيير حجم الشاشة
+window.addEventListener('resize', setLogoFromConfig);
 
 /*****************************************
  * كشف نوع المصدر من الرابط
@@ -211,7 +225,6 @@ function toYouTubeEmbed(url){
       const id = u.searchParams.get('v');
       return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
     }
-    // live style /live/ID
     const parts = u.pathname.split('/').filter(Boolean);
     const id = parts.pop();
     return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
@@ -225,13 +238,12 @@ let hlsInstance = null; let dashPlayer = null;
 
 async function loadSource({title, url}){
   el.loading.classList.add('active');
-  // نظّف القديم
   if(hlsInstance){ hlsInstance.destroy(); hlsInstance = null }
   if(dashPlayer){ dashPlayer.reset(); dashPlayer = null }
   el.playerBox.querySelectorAll('video, iframe').forEach(n=> n.remove());
 
   const type = detectType(url);
-  const overlay = el.logoOverlay; // سيبقى فوق كل العناصر
+  const overlay = el.logoOverlay;
 
   if(type === 'youtube' || type === 'iframe'){
     const iframe = document.createElement('iframe');
@@ -264,7 +276,7 @@ async function loadSource({title, url}){
     } else if(type === 'file'){
       video.src = url;
     } else {
-      video.src = url; // محاولة عامة
+      video.src = url;
     }
   }
 
@@ -311,7 +323,6 @@ function setActiveServerBtn(index){
 let currentChannel = null;
 function selectChannel(ch){
   currentChannel = ch; renderServers(ch.servers || []);
-  // تشغيل أول سيرفر تلقائياً
   if(ch.servers && ch.servers[0]){
     loadSource({title: ch.name, url: ch.servers[0].url});
   }
@@ -331,9 +342,5 @@ el.search.addEventListener('input', ()=>{
  *****************************************/
 setLogoFromConfig();
 renderChannels(CONFIG.channels);
-
-// تشغيل أول قناة افتراضياً (اختياري)
 if(CONFIG.channels[0]) selectChannel(CONFIG.channels[0]);
-
-// معلومات صغيرة
 console.log('%c Blogger Live — UL Style ', 'background:#4f8cff;color:#fff;padding:6px 10px;border-radius:8px');
